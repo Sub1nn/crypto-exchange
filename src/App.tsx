@@ -11,6 +11,9 @@ interface CoinData {
 
 function App() {
   const [data, setData] = useState<CoinData[] | undefined>();
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageRange, setPageRange] = useState<number[]>([]);
+  const itemsPerPage: number = 6;
 
   useEffect(() => {
     const fetchdata = async () => {
@@ -24,13 +27,44 @@ function App() {
     fetchdata();
   }, []);
 
+  useEffect(() => {
+    const totalPages = data ? Math.ceil(data?.length / itemsPerPage) : 0;
+    const range = calculatePageRange(currentPage, totalPages);
+    setPageRange(range);
+  }, [currentPage]);
+
+  const totalPages = data ? Math.ceil(data?.length / itemsPerPage) : 0;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = data
+    ? data.slice(startIndex, startIndex + itemsPerPage)
+    : 0;
+
+  const handleNext = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const handlePrevious = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const calculatePageRange = (currentPage: number, totalPages: number) => {
+    const start = Math.max(1, currentPage - 1);
+    const end = Math.min(totalPages, currentPage + 1);
+    const range = Array.from({ length: end - start + 1 }, (_, i) => i + start);
+    return range;
+  };
+
   return (
     <>
       <div style={styles.main}>
         <h1 style={styles.h1}>Crypto Exchange</h1>
         <div style={styles.container}>
-          {data ? (
-            data.map((coin, index) => (
+          {currentItems ? (
+            currentItems.map((coin, index) => (
               <>
                 <div key={index} style={styles.card}>
                   <h2>{coin.name}</h2>
@@ -44,7 +78,7 @@ function App() {
                     <strong>Rank:</strong>{" "}
                     {coin.reported_rank !== null
                       ? coin.reported_rank
-                      : "No Rank Data"}
+                      : "No rank data"}
                   </p>
                   <p>
                     <strong>Description:</strong>{" "}
@@ -61,12 +95,34 @@ function App() {
             <p>Loading data...</p>
           )}
         </div>
+        <div style={styles.pagination}>
+          <a style={styles.a} href="#" onClick={handlePrevious}>
+            &laquo;
+          </a>
+          {pageRange.map((pageNumber) => (
+            <a
+              style={styles.a}
+              href="#"
+              onClick={() => handlePageChange(pageNumber)}
+            >
+              {pageNumber}
+            </a>
+          ))}
+          <a style={styles.a} href="#" onClick={handleNext}>
+            &raquo;
+          </a>
+        </div>
       </div>
     </>
   );
 }
 
-const styles: { [key: string]: CSSProperties } = {
+interface CustomCSSProperties extends CSSProperties {
+  gridTemplateColumns?: string;
+  width?: string;
+}
+
+const styles: { [key: string]: CustomCSSProperties } = {
   main: {
     display: "flex",
     flexDirection: "column",
@@ -78,7 +134,6 @@ const styles: { [key: string]: CSSProperties } = {
     color: "rgba(255, 255, 255, 0.87)",
     fontFamily: "montserat",
     overflow: "hidden",
-    boxSizing: "border-box",
   },
   h1: {
     fontWeight: "bold",
@@ -94,18 +149,33 @@ const styles: { [key: string]: CSSProperties } = {
     justifyContent: "center",
     alignItems: "center",
     width: "100%",
-    gap: "50px 30px", // row-gap-50px and column-gap-30px
-    padding: "10px 20px",
+    gap: "20px 30px", // row-gap-50px and column-gap-30px
+    padding: "10px 30px",
     overflow: "auto",
     boxSizing: "border-box",
   },
   card: {
     borderRadius: "8px",
-    padding: "0 20px 10px",
-    height: "270px",
+    padding: "0 20px",
+    height: "300px",
+    minHeight: "280px",
     maxWidth: "500px",
     boxShadow: " rgba(0, 0, 0, 0.2) 0px 60px 40px -7px",
     backgroundColor: "#8e362e",
+  },
+  pagination: {
+    display: "flex",
+    justifyContent: "center",
+    margin: "20px 0 10px 0",
+  },
+  a: {
+    color: "#ffffff",
+    padding: "8px 16px",
+    textDecoration: "none",
+    margin: "0 5px",
+    backgroundColor: "#333",
+    borderRadius: "5px",
+    transition: "background-color 0.3s",
   },
 };
 
