@@ -52,9 +52,12 @@ function App() {
   };
 
   const calculatePageRange = (currentPage: number, totalPages: number) => {
-    const start = Math.max(1, currentPage - 1);
-    const end = Math.min(totalPages, currentPage + 1);
-    const range = Array.from({ length: end - start + 1 }, (_, i) => i + start);
+    const startPage = Math.max(1, currentPage - 1);
+    const endPage = Math.min(totalPages, currentPage + 1);
+    const range = Array.from(
+      { length: endPage - startPage + 1 },
+      (_, i) => i + startPage
+    );
     return range;
   };
 
